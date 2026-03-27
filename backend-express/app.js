@@ -41,6 +41,24 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Database Health Check - separate endpoint for database status
+app.get('/health/db', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.status(200).json({
+            status: 'OK',
+            message: 'Database connection is healthy',
+            database: 'connected'
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'ERROR',
+            message: 'Database connection failed',
+            error: error.message
+        });
+    }
+});
+
 // API Routes
 app.use('/api', apiRoutes);
 
@@ -121,21 +139,26 @@ const startServer = async () => {
             process.exit(1);
         }
 
-        // Test database connection with retry logic
-        await sequelize.authenticate();
-        console.log('✅ Database connection established successfully.');
-
-        // Sync models (create tables if they don't exist)
-        await sequelize.sync({ alter: true });
-        console.log('✅ Database models synchronized.');
-
-        // Start server
+        // Start server first, then try database connection
         app.listen(PORT, '0.0.0.0', () => {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📚 API Documentation:`);
             console.log(`   - Health Check: http://localhost:${PORT}/health`);
             console.log(`   - API Base: http://localhost:${PORT}/api`);
         });
+
+        // Try database connection after server starts
+        try {
+            await sequelize.authenticate();
+            console.log('✅ Database connection established successfully.');
+
+            // Sync models (create tables if they don't exist)
+            await sequelize.sync({ alter: true });
+            console.log('✅ Database models synchronized.');
+        } catch (dbError) {
+            console.error('⚠️  Database connection failed, but server is running:', dbError.message);
+            console.error('🔍 Database error details:', dbError);
+        }
     } catch (error) {
         console.error('❌ Unable to start server:', error.message);
         console.error('🔍 Full error:', error);
