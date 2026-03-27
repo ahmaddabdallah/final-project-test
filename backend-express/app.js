@@ -103,35 +103,6 @@ const startServer = async () => {
         console.log('MYSQLPASSWORD:', process.env.MYSQLPASSWORD ? '***' : 'NOT SET');
         console.log('MYSQL_URL:', process.env.MYSQL_URL);
 
-        // Update Sequelize config with Railway private domain
-        const sequelize = new Sequelize(
-            dbConfig.database,
-            dbConfig.username,
-            dbConfig.password,
-            {
-                host: dbConfig.host,
-                port: dbConfig.port,
-                dialect: 'mysql',
-                logging: process.env.NODE_ENV === 'development' ? console.log : false,
-                dialectOptions: {
-                    // No SSL needed for private networking
-                    ssl: false,
-                    connectTimeout: 30000,
-                    timeout: 30000,
-                },
-                pool: {
-                    max: 5,
-                    min: 0,
-                    acquire: 30000,
-                    idle: 10000,
-                },
-                retry: {
-                    max: 3,
-                    timeout: 5000,
-                },
-            }
-        );
-
         // If no Railway variables, fallback to localhost for development
         if (!process.env.MYSQLHOST && process.env.NODE_ENV === 'production') {
             console.log('❌ Production mode detected but no Railway database configuration found!');
