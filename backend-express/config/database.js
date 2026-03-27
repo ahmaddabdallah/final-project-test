@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Railway MySQL plugin configuration
 const sequelize = new Sequelize(
     process.env.DB_NAME || 'ecommerce',
     process.env.DB_USER || 'root',
@@ -12,11 +13,21 @@ const sequelize = new Sequelize(
         port: process.env.DB_PORT || 3306,
         dialect: 'mysql',
         logging: process.env.NODE_ENV === 'development' ? console.log : false,
+        dialectOptions: {
+            ssl: process.env.DB_HOST && process.env.DB_HOST.includes('railway') ? {
+                require: true,
+                rejectUnauthorized: false
+            } : false,
+        },
         pool: {
             max: 5,
             min: 0,
             acquire: 30000,
             idle: 10000,
+        },
+        retry: {
+            max: 3,
+            timeout: 5000,
         },
     }
 );
