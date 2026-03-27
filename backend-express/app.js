@@ -55,8 +55,8 @@ const startServer = async () => {
     try {
         // Use Railway's private domain for MySQL to avoid egress fees
         const dbConfig = {
-            // Use private domain for Railway MySQL
-            host: process.env.RAILWAY_PRIVATE_DOMAIN ? `${process.env.MYSQLDATABASE || 'mysql'}.railway.internal` :
+            // Use private domain for Railway MySQL - service name is 'mysql'
+            host: process.env.RAILWAY_PRIVATE_DOMAIN ? 'mysql.railway.internal' :
                 (process.env.MYSQLHOST || process.env.DB_HOST || 'localhost'),
             port: process.env.MYSQLPORT || process.env.DB_PORT || 3306,
             database: process.env.MYSQLDATABASE || process.env.DB_NAME || 'ecommerce',
